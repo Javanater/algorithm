@@ -26,20 +26,30 @@ namespace flabs
 			struct CostNode
 			{
 				Node* node;
-				double cost;
+				double fScore;
 
-				CostNode(Node* node, double cost) : node(node), cost(cost)
+				CostNode(Node* node, double cost) : node(node), fScore(cost)
 				{
 				}
 
 				bool operator<(const CostNode& other) const
 				{
-					if (cost == other.cost)
+					if (fScore == other.fScore)
 						return node < other.node;
 					else
-						return cost < other.cost;
+						return fScore < other.fScore;
 				}
 			};
+
+			template<template<class, class, class...> class C, typename K,
+				typename V, typename... Args>
+			inline V GetWithDef(C<K, V, Args...>& m, K& key)
+			{
+				typename C<K, V, Args...>::const_iterator it = m.find(key);
+				if (it == m.end())
+					return std::numeric_limits<K>::infinity();
+				return it->second;
+			}
 
 			virtual std::list<Node*>
 			operator()(Node* start, Node* goal, size_t maxIterations = 1000)
@@ -48,18 +58,14 @@ namespace flabs
 
 				std::map<Node*, Node*, CompareNode> cameFrom;
 
-				std::map<Node*, double, CompareNode> gScoreT;
-				auto                                 gScore = wrapMap(gScoreT,
-					std::numeric_limits<double>::infinity());
-				gScore[start]                               = 0;
+				std::map<Node*, double, CompareNode> gScore;
+				gScore[start] = 0;
 
-				std::map<Node*, double, CompareNode> fScoreT;
-				auto                                 fScore = wrapMap(fScoreT,
-					std::numeric_limits<double>::infinity());
+				std::map<Node*, double, CompareNode> fScore;
 				fScore[start] = cost(start, goal);
 
 				std::set<CostNode> costSortedOpenSet;
-				costSortedOpenSet.emplace(start, fScore[start]);
+				costSortedOpenSet.emplace(start, GetWithDef(fScore, start));
 
 				for (; !costSortedOpenSet.empty() && maxIterations;
 					--maxIterations)
@@ -72,7 +78,8 @@ namespace flabs
 					if (current == goal)
 						return reconstructPath(cameFrom, current);
 
-					costSortedOpenSet.erase(CostNode(current, fScore[current]));
+					costSortedOpenSet
+						.erase(CostNode(current, GetWithDef(fScore, current)));
 					closedSet.insert(current);
 
 					for (size_t neighborIndex = 0;
@@ -82,20 +89,20 @@ namespace flabs
 						if (closedSet.count(neighbor))
 							continue;
 
-						double tentativeScore =
-								   gScore[current] + cost(current, neighbor);
+						double tentativeScore = GetWithDef(gScore, current) +
+							cost(current, neighbor);
 						double tentativeCost  =
 								   tentativeScore + cost(neighbor, goal);
 
-						if (!costSortedOpenSet
-							.count(CostNode(neighbor, fScore[neighbor])))
+						if (!costSortedOpenSet.count(
+							CostNode(neighbor, GetWithDef(fScore, neighbor))))
 							costSortedOpenSet.emplace(neighbor, tentativeCost);
-						else if (tentativeScore >= gScore[neighbor])
+						else if (tentativeScore >= GetWithDef(gScore, neighbor))
 							continue;
 						else
 						{
-							int c = costSortedOpenSet
-								.erase(CostNode(neighbor, fScore[neighbor]));
+							costSortedOpenSet.erase(CostNode(neighbor,
+								GetWithDef(fScore, neighbor)));
 							costSortedOpenSet.emplace(neighbor, tentativeCost);
 						}
 
