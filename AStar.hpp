@@ -17,16 +17,96 @@ namespace flabs
 	class AStar
 	{
 		public:
-			struct CompareNode
-			{
-				bool operator()(const Node* node1, const Node* node2) const
-				{
-					return *node1 < *node2;
-				}
-			};
+			typedef lessPointer<Node*> CompareNode;
 
 			virtual ~AStar()
 			{
+			}
+
+			struct CostNode
+			{
+				Node* node;
+				double cost;
+
+				CostNode(Node* node, double cost) : node(node), cost(cost)
+				{
+				}
+
+				bool operator<(const CostNode& other) const
+				{
+					if (cost == other.cost)
+						return node < other.node;
+					else
+						return cost < other.cost;
+				}
+			};
+
+			virtual std::list<Node*>
+			operator()(Node* start, Node* goal, size_t maxIterations = 1000)
+			{
+				std::set<Node*, CompareNode> closedSet;
+
+				std::map<Node*, Node*, CompareNode> cameFrom;
+
+				std::map<Node*, double, CompareNode> gScoreT;
+				auto                                 gScore = wrapMap(gScoreT,
+					std::numeric_limits<double>::infinity());
+				gScore[start]                               = 0;
+
+				std::map<Node*, double, CompareNode> fScoreT;
+				auto                                 fScore = wrapMap(fScoreT,
+					std::numeric_limits<double>::infinity());
+				fScore[start] = cost(start, goal);
+
+				std::set<CostNode> costSortedOpenSet;
+				costSortedOpenSet.emplace(start, fScore[start]);
+
+				for (; !costSortedOpenSet.empty() && maxIterations;
+					--maxIterations)
+				{
+					Node* current = costSortedOpenSet.begin()->node;
+
+					if (!current)
+						break;
+
+					if (current == goal)
+						return reconstructPath(cameFrom, current);
+
+					costSortedOpenSet.erase(CostNode(current, fScore[current]));
+					closedSet.insert(current);
+
+					for (size_t neighborIndex = 0;
+						neighborIndex < neighborCount(current); ++neighborIndex)
+					{
+						Node* neighbor = getNeighbor(current, neighborIndex);
+						if (closedSet.count(neighbor))
+							continue;
+
+						double tentativeScore =
+								   gScore[current] + cost(current, neighbor);
+						double tentativeCost  =
+								   tentativeScore + cost(neighbor, goal);
+
+						if (!costSortedOpenSet
+							.count(CostNode(neighbor, fScore[neighbor])))
+							costSortedOpenSet.emplace(neighbor, tentativeCost);
+						else if (tentativeScore >= gScore[neighbor])
+							continue;
+						else
+						{
+							int c = costSortedOpenSet
+								.erase(CostNode(neighbor, fScore[neighbor]));
+							costSortedOpenSet.emplace(neighbor, tentativeCost);
+						}
+
+						cameFrom[neighbor] = current;
+						gScore[neighbor]   = tentativeScore;
+						fScore[neighbor]   = tentativeCost;
+					}
+				}
+
+				std::list<Node*> empty;
+				return empty;
 			}
 
 			virtual std::list<Node*>
@@ -42,81 +122,6 @@ namespace flabs
 				while (cameFrom.count(current));
 				path.push_front(current);
 				return path;
-			}
-
-			virtual std::list<Node*>
-			operator()(Node* start, Node* goal, size_t maxIterations = 1000)
-			{
-				std::set<Node*, CompareNode> closedSet;
-
-				std::set<Node*, CompareNode> openSet;
-				openSet.insert(start);
-
-				std::map<Node*, Node*, CompareNode> cameFrom;
-
-				std::map<Node*, double, CompareNode> gScoreT;
-				auto                                 gScore = wrapMap(gScoreT,
-					std::numeric_limits<double>::infinity());
-				gScore[start]                               = 0;
-
-				std::map<Node*, double, CompareNode> fScoreT;
-				auto                                 fScore = wrapMap(fScoreT,
-					std::numeric_limits<double>::infinity());
-				fScore[start] = cost(start, goal);
-
-				for (; !openSet.empty() && maxIterations; --maxIterations)
-				{
-					Node* current = lowest(openSet, fScore);
-
-					if (!current)
-						break;
-
-					if (current == goal)
-						return reconstructPath(cameFrom, current);
-
-					openSet.erase(current);
-					closedSet.insert(current);
-
-					for (size_t neighborIndex = 0;
-						neighborIndex < neighborCount(current); ++neighborIndex)
-					{
-						Node* neighbor = getNeighbor(current, neighborIndex);
-						if (closedSet.count(neighbor))
-							continue;
-
-						double tentativeScore =
-								   gScore[current] + cost(current, neighbor);
-						double tentativeCost  =
-								   tentativeScore + cost(neighbor, goal);
-						if (!openSet.count(neighbor))
-							openSet.insert(neighbor);
-						else if (tentativeScore >= gScore[neighbor])
-							continue;
-
-						cameFrom[neighbor] = current;
-						gScore[neighbor]   = tentativeScore;
-						fScore[neighbor]   = tentativeCost;
-					}
-				}
-
-				std::list<Node*> empty;
-				return empty;
-			}
-
-			Node* lowest(std::set<Node*, CompareNode> openSet, auto& fScore)
-			{
-				double lowestFScore = std::numeric_limits<double>::infinity();
-				Node     * lowest = nullptr;
-				for (Node* node : openSet)
-				{
-					double& score = fScore[node];
-					if (score < lowestFScore)
-					{
-						lowestFScore = score;
-						lowest       = node;
-					}
-				}
-				return lowest;
 			}
 
 			virtual double cost(Node* from, Node* to) = 0;
