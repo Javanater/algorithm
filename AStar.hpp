@@ -27,10 +27,8 @@ public:
 	{
 		bool operator()(const Node* node1, const Node* node2) const
 		{
-			if (node1->fScore == node2->fScore)
-				return *node1 < *node2;
-			else
-				return node1->fScore < node2->fScore;
+			return node1->fScore < node2->fScore ||
+				(node1->fScore == node2->fScore && *node1 < *node2);
 		}
 	};
 

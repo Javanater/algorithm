@@ -23,10 +23,7 @@ struct GridAStarNode : public AStar<GridAStar, GridAStarNode>::SuperNode
 
 	bool operator<(const GridAStarNode& node) const
 	{
-		if (x == node.x)
-			return y < node.y;
-		else
-			return x < node.x;
+		return x < node.x || (x == node.x && y < node.y);
 	}
 
 	bool operator==(const GridAStarNode& node) const
