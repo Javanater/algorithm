@@ -8,7 +8,7 @@ using namespace std;
 
 namespace flabs
 {
-Node::Node(int x, int y) : x(x), y(y)
+GridAStarNode::GridAStarNode(int x, int y) : x(x), y(y)
 {
 }
 
@@ -40,7 +40,7 @@ const double GridAStar::neighborCostLookup[][8] = {
 };
 //@formatter:on
 
-GridAStar::GridAStar() : AStar<GridAStar, Node>(this)
+GridAStar::GridAStar() : AStar<GridAStar, GridAStarNode>(this)
 {
 }
 
@@ -50,12 +50,12 @@ GridAStar::~GridAStar()
 		for (auto p : m.second)
 			delete p.second;
 }
-}
 
-std::ostream& operator<<(std::ostream& out, const flabs::Node* node)
+ostream& operator<<(ostream& out, const GridAStarNode* node)
 {
 	if (node)
 		return out << '(' << node->x << ',' << node->y << ')';
 	else
 		return out << "(null)";
+}
 }

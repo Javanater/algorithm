@@ -14,14 +14,14 @@ namespace flabs
 {
 class GridAStar;
 
-struct Node : public AStar<GridAStar, Node>::SuperNode
+struct GridAStarNode : public AStar<GridAStar, GridAStarNode>::SuperNode
 {
 	int x;
 	int y;
 
-	Node(int x, int y);
+	GridAStarNode(int x, int y);
 
-	bool operator<(const Node& node) const
+	bool operator<(const GridAStarNode& node) const
 	{
 		if (x == node.x)
 			return y < node.y;
@@ -29,20 +29,21 @@ struct Node : public AStar<GridAStar, Node>::SuperNode
 			return x < node.x;
 	}
 
-	bool operator==(const Node& node) const
+	bool operator==(const GridAStarNode& node) const
 	{
 		return x == node.x && y == node.y;
 	}
 
-	bool isNeighbor(const Node* node) const
+	bool isNeighbor(const GridAStarNode* node) const
 	{
 		return std::abs(x - node->x) <= 1 && std::abs(y - node->y) <= 1;
 	}
 
-	friend std::ostream& operator<<(std::ostream& out, const Node* node);
+	friend std::ostream&
+	operator<<(std::ostream& out, const GridAStarNode* node);
 };
 
-class GridAStar : public AStar<GridAStar, Node>
+class GridAStar : public AStar<GridAStar, GridAStarNode>
 {
 public:
 	static const int    xInc[];
@@ -50,44 +51,45 @@ public:
 	static const double neighborCostLookup[][8];
 	static const double costMultiplierLookup[];
 
-	std::set<Node*>                     obstacles;
-	std::map<int, std::map<int, Node*>> nodes;
+	std::set<GridAStarNode*>                     obstacles;
+	std::map<int, std::map<int, GridAStarNode*>> nodes;
 
 	GridAStar();
 
 	~GridAStar();
 
-	double cost(Node* from, Node* to, size_t neighborIndex) const
+	double
+	cost(GridAStarNode* from, GridAStarNode* to, size_t neighborIndex) const
 	{
 		return neighborCostLookup[obstacles.count(to)][neighborIndex];
 	}
 
-	double cost(Node* from, Node* to) const
+	double cost(GridAStarNode* from, GridAStarNode* to) const
 	{
 		return std::sqrt(
 			std::pow(to->x - from->x, 2) + std::pow(to->y - from->y, 2)) *
 			costMultiplierLookup[obstacles.count(to)];
 	}
 
-	Node* getNeighbor(const Node* node, size_t index)
+	GridAStarNode* getNeighbor(const GridAStarNode* node, size_t index)
 	{
 		return getNode(node->x + xInc[index], node->y + yInc[index]);
 	}
 
-	size_t neighborCount(const Node* node) const
+	size_t neighborCount(const GridAStarNode* node) const
 	{
 		return 8;
 	}
 
-	Node*& getNode(int x, int y)
+	GridAStarNode*& getNode(int x, int y)
 	{
-		Node*& n = nodes[x][y];
+		GridAStarNode*& n = nodes[x][y];
 		if (!n)
-			n = new Node(x, y);
+			n = new GridAStarNode(x, y);
 		return n;
 	}
 
-	bool isObstacle(Node* node) const
+	bool isObstacle(GridAStarNode* node) const
 	{
 		return obstacles.count(node) >= 1;
 	}
