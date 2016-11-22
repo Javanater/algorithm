@@ -5,8 +5,10 @@
 #ifndef PROJECTS_ASTAR_HPP
 #define PROJECTS_ASTAR_HPP
 
-#include <list>
 #include <set>
+#include <list>
+#include <limits>
+#include <cstddef>
 
 namespace flabs
 {
