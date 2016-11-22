@@ -18,24 +18,24 @@ const double GridAStar::costMultiplierLookup[]  = {1, 1000};
 //@formatter:off
 const double GridAStar::neighborCostLookup[][8] = {
 	{
-		std::sqrt(std::pow(xInc[0], 2) + std::pow(yInc[0], 2)),
-		std::sqrt(std::pow(xInc[1], 2) + std::pow(yInc[1], 2)),
-		std::sqrt(std::pow(xInc[2], 2) + std::pow(yInc[2], 2)),
-		std::sqrt(std::pow(xInc[3], 2) + std::pow(yInc[3], 2)),
-		std::sqrt(std::pow(xInc[4], 2) + std::pow(yInc[4], 2)),
-		std::sqrt(std::pow(xInc[5], 2) + std::pow(yInc[5], 2)),
-		std::sqrt(std::pow(xInc[6], 2) + std::pow(yInc[6], 2)),
-		std::sqrt(std::pow(xInc[7], 2) + std::pow(yInc[7], 2))
+		sqrt(pow(xInc[0], 2) + pow(yInc[0], 2)),
+		sqrt(pow(xInc[1], 2) + pow(yInc[1], 2)),
+		sqrt(pow(xInc[2], 2) + pow(yInc[2], 2)),
+		sqrt(pow(xInc[3], 2) + pow(yInc[3], 2)),
+		sqrt(pow(xInc[4], 2) + pow(yInc[4], 2)),
+		sqrt(pow(xInc[5], 2) + pow(yInc[5], 2)),
+		sqrt(pow(xInc[6], 2) + pow(yInc[6], 2)),
+		sqrt(pow(xInc[7], 2) + pow(yInc[7], 2))
 	},
 	{
-		std::sqrt(std::pow(xInc[0], 2) + std::pow(yInc[0], 2)) * 1000,
-		std::sqrt(std::pow(xInc[1], 2) + std::pow(yInc[1], 2)) * 1000,
-		std::sqrt(std::pow(xInc[2], 2) + std::pow(yInc[2], 2)) * 1000,
-		std::sqrt(std::pow(xInc[3], 2) + std::pow(yInc[3], 2)) * 1000,
-		std::sqrt(std::pow(xInc[4], 2) + std::pow(yInc[4], 2)) * 1000,
-		std::sqrt(std::pow(xInc[5], 2) + std::pow(yInc[5], 2)) * 1000,
-		std::sqrt(std::pow(xInc[6], 2) + std::pow(yInc[6], 2)) * 1000,
-		std::sqrt(std::pow(xInc[7], 2) + std::pow(yInc[7], 2)) * 1000
+		sqrt(pow(xInc[0], 2) + pow(yInc[0], 2)) * 1000,
+		sqrt(pow(xInc[1], 2) + pow(yInc[1], 2)) * 1000,
+		sqrt(pow(xInc[2], 2) + pow(yInc[2], 2)) * 1000,
+		sqrt(pow(xInc[3], 2) + pow(yInc[3], 2)) * 1000,
+		sqrt(pow(xInc[4], 2) + pow(yInc[4], 2)) * 1000,
+		sqrt(pow(xInc[5], 2) + pow(yInc[5], 2)) * 1000,
+		sqrt(pow(xInc[6], 2) + pow(yInc[6], 2)) * 1000,
+		sqrt(pow(xInc[7], 2) + pow(yInc[7], 2)) * 1000
 	}
 };
 //@formatter:on
