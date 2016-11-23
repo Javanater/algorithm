@@ -21,17 +21,17 @@ struct GridAStarNode : public AStar<GridAStar, GridAStarNode>::SuperNode
 
 	GridAStarNode(int x, int y);
 
-	bool operator<(const GridAStarNode& node) const
+	inline bool operator<(const GridAStarNode& node) const
 	{
 		return x < node.x || (x == node.x && y < node.y);
 	}
 
-	bool operator==(const GridAStarNode& node) const
+	inline bool operator==(const GridAStarNode& node) const
 	{
 		return x == node.x && y == node.y;
 	}
 
-	bool isNeighbor(const GridAStarNode* node) const
+	inline bool isNeighbor(const GridAStarNode* node) const
 	{
 		return std::abs(x - node->x) <= 1 && std::abs(y - node->y) <= 1;
 	}
@@ -55,30 +55,30 @@ public:
 
 	~GridAStar();
 
-	double
+	inline double
 	cost(GridAStarNode* from, GridAStarNode* to, size_t neighborIndex) const
 	{
 		return neighborCostLookup[obstacles.count(to)][neighborIndex];
 	}
 
-	double cost(GridAStarNode* from, GridAStarNode* to) const
+	inline double cost(GridAStarNode* from, GridAStarNode* to) const
 	{
 		return std::sqrt(
 			std::pow(to->x - from->x, 2) + std::pow(to->y - from->y, 2)) *
 			costMultiplierLookup[obstacles.count(to)];
 	}
 
-	GridAStarNode* getNeighbor(const GridAStarNode* node, size_t index)
+	inline GridAStarNode* getNeighbor(const GridAStarNode* node, size_t index)
 	{
 		return getNode(node->x + xInc[index], node->y + yInc[index]);
 	}
 
-	size_t neighborCount(const GridAStarNode* node) const
+	inline size_t neighborCount(const GridAStarNode* node) const
 	{
 		return 8;
 	}
 
-	GridAStarNode*& getNode(int x, int y)
+	inline GridAStarNode*& getNode(int x, int y)
 	{
 		GridAStarNode*& n = nodes[x][y];
 		if (!n)
@@ -86,10 +86,12 @@ public:
 		return n;
 	}
 
-	bool isObstacle(GridAStarNode* node) const
+	inline bool isObstacle(GridAStarNode* node) const
 	{
 		return obstacles.count(node) >= 1;
 	}
+
+	void reset();
 };
 }
 

@@ -8,6 +8,7 @@
 #include <limits>
 #include <list>
 #include <tuple>
+#include <set>
 
 namespace flabs
 {
@@ -16,25 +17,59 @@ class LPAStar
 {
 protected:
 	Base* base;
+	Node* start;
+	Node* goal;
+	std::set<Node*> openList;
 
-	LPAStar(Base* base) : base(base)
+public:
+	struct OrderByKey
 	{
+		bool operator()(const Node* node1, const Node* node2) const
+		{
+			return node1->key < node2->key;
+		}
+	};
+
+	struct Key
+	{
+		double first;
+		double second;
+
+		Key(double first = std::numeric_limits<double>::infinity(),
+			double second = std::numeric_limits<double>::infinity()) :
+			first(first), second(second)
+		{
+		}
+
+		bool operator<(const Key& key) const
+		{
+			return first < key.first ||
+				(first == key.first && second < key.second);
+		}
+	};
+
+protected:
+	LPAStar(Base* base, Node* start, Node* goal) :
+		base(base), start(start), goal(goal)
+	{
+		initialize();
 	}
 
+protected:
 	struct SuperNode
 	{
-		double                     g;
-		double                     rhs;
-		double                     h;
-		std::tuple<double, double> key;
-		std::list<Node*>           children;
-		std::list<Node*>           parents;
+		double           g;
+		double           rhs;
+		double           h;
+		Key              key;
+		std::list<Node*> children;
+		std::list<Node*> parents;
 
 	protected:
 		SuperNode(double g = std::numeric_limits<double>::infinity(),
 			double h = std::numeric_limits<double>::infinity(),
-			double rhs = std::numeric_limits<double>::infinity(), double key) :
-			g(g), h(h), rhs(rhs), key(key)
+			double rhs = std::numeric_limits<double>::infinity()) :
+			g(g), h(h), rhs(rhs)
 		{
 		}
 
@@ -43,32 +78,54 @@ protected:
 		}
 	};
 
-	void operator()()
+private:
+	inline Key& calculateKey(Node* node) const
 	{
-		//For each s in Graph
-		//	s.g(x) = rhs(x) = ∞; (locally consistent)
-		//end for each
+		double temp = std::min(node->g, node->rhs);
+		node->key = std::make_tuple(temp + base->cost(node, goal), temp);
+		return node->key;
+	}
 
-		//startNode.rhs = 0; (overconsistent)
-		//Forever
-		//While(OpenList.Top().key<goal.key OR
-		//		   goal is incosistent)
-		//	currentNode=OpenList.Pop();
-		//	if(currentNode is overconsistent)
-		//		currentNode.g(x) = currentNode.rhs(x); (Consistent)
-		//	else
-		//		currentNode.g(x)= ∞; (overconsistent OR consistent)
-		//	end if
-		//	for each s in currentNode.Children[]
-		//		update s.rhs(x); (consistent OR inconsistent)
-		//	end for each
-		//End while
-		//Wait for changes in Graph
-		//	For each connection (u, v) with changed cost
-		//		Update connection(u, v);
-		//		Make v locally inconsistent;
-		//	end for each
-		//End forever
+	inline void initialize()
+	{
+		start->rhs = 0;
+		calculateKey(start);
+		openList.insert(start);
+	}
+
+	inline void updateVertex(Node* node)
+	{
+		if (node != start)
+		{
+			node->rhs     = std::numeric_limits<double>::infinity();
+			for (Node* p : node->parents)
+				node->rhs = std::min(node->rhs, p->g + base->cost(p, node));
+		}
+		openList.erase(node);
+		if (node->g != node->rhs)
+		{
+			calculateKey(node);
+			openList.insert(node);
+		}
+	}
+
+public:
+	std::list<Node*> operator()(size_t maxIterations = 1000)
+	{
+		for (; ((*openList.begin())->key < calculateKey(goal) ||
+			goal->rhs != goal->g) && maxIterations; --maxIterations)
+		{
+			Node* current = *openList.begin();
+			openList.erase(openList.begin());
+
+			if (current->g > current->rhs)
+				current->g = current->rhs;
+			else
+				current->g = std::numeric_limits<double>::infinity();
+
+			for (Node* s : current->children)
+				updateVertex(s);
+		}
 	}
 };
 }

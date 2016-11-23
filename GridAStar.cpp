@@ -3,6 +3,7 @@
 //
 
 #include "GridAStar.hpp"
+#include <list>
 
 using namespace std;
 
@@ -49,6 +50,24 @@ GridAStar::~GridAStar()
 	for (auto m : nodes)
 		for (auto p : m.second)
 			delete p.second;
+}
+
+void GridAStar::reset()
+{
+	std::list<GridAStarNode*> toBeRemoved;
+	for (auto                 m : nodes)
+		for (auto p : m.second)
+			if (obstacles.count(p.second) == 0)
+				toBeRemoved.push_back(p.second);
+
+	for (GridAStarNode* node : toBeRemoved)
+	{
+		std::map<int, GridAStarNode*>& m = nodes[node->x];
+		m.erase(node->y);
+		if (m.size() == 0)
+			nodes.erase(node->x);
+		delete node;
+	}
 }
 
 ostream& operator<<(ostream& out, const GridAStarNode* node)
