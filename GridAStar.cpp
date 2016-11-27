@@ -9,7 +9,8 @@ using namespace std;
 
 namespace flabs
 {
-GridAStarNode::GridAStarNode(int x, int y) : x(x), y(y)
+GridAStarNode::GridAStarNode(int x, int y) :
+	state(x, y), x(get<0>(state)), y(get<1>(state))
 {
 }
 
