@@ -9,7 +9,8 @@ using namespace std;
 
 namespace flabs
 {
-GridAStarNode::GridAStarNode(int x, int y) : x(x), y(y)
+GridAStarNode::GridAStarNode(int x, int y) :
+	state(x, y), x(get<0>(state)), y(get<1>(state))
 {
 }
 
@@ -62,7 +63,7 @@ void GridAStar::reset()
 
 	for (GridAStarNode* node : toBeRemoved)
 	{
-		std::map<int, GridAStarNode*>& m = nodes[node->x];
+		map<int, GridAStarNode*>& m = nodes[node->x];
 		m.erase(node->y);
 		if (m.size() == 0)
 			nodes.erase(node->x);

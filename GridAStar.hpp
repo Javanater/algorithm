@@ -9,6 +9,7 @@
 #include <cmath>
 #include <map>
 #include <ostream>
+#include <tuple>
 
 namespace flabs
 {
@@ -16,19 +17,20 @@ class GridAStar;
 
 struct GridAStarNode : public AStar<GridAStar, GridAStarNode>::SuperNode
 {
-	int x;
-	int y;
+	std::tuple<int, int> state;
+	const int& x;
+	const int& y;
 
 	GridAStarNode(int x, int y);
 
 	inline bool operator<(const GridAStarNode& node) const
 	{
-		return x < node.x || (x == node.x && y < node.y);
+		return state < node.state;
 	}
 
 	inline bool operator==(const GridAStarNode& node) const
 	{
-		return x == node.x && y == node.y;
+		return state == node.state;
 	}
 
 	inline bool isNeighbor(const GridAStarNode* node) const
