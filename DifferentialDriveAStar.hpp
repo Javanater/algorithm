@@ -18,6 +18,9 @@ struct DifferentialDriveAStarNode :
 	public AStar<DifferentialDriveAStar, DifferentialDriveAStarNode>::SuperNode
 {
 	std::tuple<int, int, int> state;
+	const int& x;
+	const int& y;
+	const int& t;
 
 	DifferentialDriveAStarNode(int x, int y, int t);
 
@@ -28,11 +31,12 @@ struct DifferentialDriveAStarNode :
 
 	inline bool operator==(const DifferentialDriveAStarNode& node) const
 	{
-		return x == node.x && y == node.y;
+		return state == node.state;
 	}
 
 	inline bool isNeighbor(const DifferentialDriveAStarNode* node) const
 	{
+		//TODO: Implement for diffy drive
 		return std::abs(x - node->x) <= 1 && std::abs(y - node->y) <= 1;
 	}
 
