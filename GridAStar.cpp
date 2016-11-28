@@ -63,7 +63,7 @@ void GridAStar::reset()
 
 	for (GridAStarNode* node : toBeRemoved)
 	{
-		std::map<int, GridAStarNode*>& m = nodes[node->x];
+		map<int, GridAStarNode*>& m = nodes[node->x];
 		m.erase(node->y);
 		if (m.size() == 0)
 			nodes.erase(node->x);

@@ -13,5 +13,8 @@ flabs::DifferentialDriveAStarNode::DifferentialDriveAStarNode(int x, int y,
 std::ostream& flabs::operator<<(std::ostream& out,
 	const flabs::DifferentialDriveAStarNode* node)
 {
-	return <#initializer#>;
+	if (node)
+		return out << '(' << node->x << ',' << node->y << ',' << node->t << ')';
+	else
+		return out << "(null)";
 }
