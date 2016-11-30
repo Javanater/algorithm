@@ -10,6 +10,8 @@
 #include <map>
 #include <ostream>
 #include <tuple>
+#include <boost/math/constants/constants.hpp>
+#include <Math/Math.hpp>
 
 namespace flabs
 {
@@ -18,30 +20,25 @@ class DifferentialDriveAStar;
 struct DifferentialDriveAStarNode :
 	public AStar<DifferentialDriveAStar, DifferentialDriveAStarNode>::SuperNode
 {
-	std::tuple<int, int, int, int, int> state;
-	int& x;
-	int& y;
-	int& yaw;
-	int& leftSpeed;
-	int& rightSpeed;
+	double x;
+	double y;
+	double yaw;
+	double leftSpeed;
+	double rightSpeed;
 
-	DifferentialDriveAStarNode(int x, int y, int t, int leftSpeed,
-		int rightSpeed);
-
-	inline bool operator<(const DifferentialDriveAStarNode& node) const
-	{
-		return state < node.state;
-	}
+	DifferentialDriveAStarNode(double x, double y, double yaw, double leftSpeed,
+		double rightSpeed);
 
 	inline bool operator==(const DifferentialDriveAStarNode& node) const
 	{
-		return state == node.state;
+		return std::abs(x - node.x) <= .01 && std::abs(y - node.y) <= .01 &&
+			std::abs(angleDifference(yaw, node.yaw)) <= .1;
 	}
 
 	inline bool isNeighbor(const DifferentialDriveAStarNode* node) const
 	{
 		//TODO: Implement for diffy drive
-		return std::abs(x - node->x) <= 1 && std::abs(y - node->y) <= 1;
+		return true;
 	}
 
 	friend std::ostream&
@@ -50,11 +47,20 @@ struct DifferentialDriveAStarNode :
 
 class DifferentialDriveAStar
 {
-public:
-	std::set<DifferentialDriveAStarNode*>                            obstacles;
-	std::map<std::tuple<int, int, int>, DifferentialDriveAStarNode*> nodes;
+private:
+	static const double neighborLeftSpeed[];
+	static const double neighborRightSpeed[];
+	const double        timeStep;
+	const double        topSpeed;
+	const double        distanceBetweenWheels;
+	double              topTurnRate;
 
-	DifferentialDriveAStar();
+public:
+	std::set<DifferentialDriveAStarNode*>  obstacles;
+	std::list<DifferentialDriveAStarNode*> nodes;
+
+	DifferentialDriveAStar(const double timeStep, const double topSpeed,
+		const double distanceBetweenWheels);
 
 	~DifferentialDriveAStar();
 
@@ -62,39 +68,60 @@ public:
 	cost(DifferentialDriveAStarNode* from, DifferentialDriveAStarNode* to,
 		size_t neighborIndex) const
 	{
-		return cost(from, to);
+		return timeStep;
 	}
 
 	inline double
 	cost(DifferentialDriveAStarNode* from, DifferentialDriveAStarNode* to) const
 	{
-		return std::sqrt(
-			std::pow(to->x - from->x, 2) + std::pow(to->y - from->y, 2)) *
-			costMultiplierLookup[obstacles.count(to)];
+		return hypot(to->x - from->x, to->y - from->y) / topSpeed +
+			std::abs(angleDifference(to->yaw, from->yaw)) / topTurnRate;
 	}
 
 	inline DifferentialDriveAStarNode*
 	getNeighbor(const DifferentialDriveAStarNode* node, size_t index)
 	{
-		return getNode(node->x + xInc[index], node->y + yInc[index]);
+		double leftDistance  = neighborLeftSpeed[index] * topSpeed * timeStep;
+		double rightDistance = neighborRightSpeed[index] * topSpeed * timeStep;
+		double deltaTheta    =
+				   (rightDistance - leftDistance) / distanceBetweenWheels;
+		double deltaX, deltaY;
+		if (deltaTheta != 0)
+		{
+			double turnRadius =
+					   leftDistance / deltaTheta + distanceBetweenWheels / 2;
+			deltaX = turnRadius * (std::cos(deltaTheta) - 1);
+			deltaY = turnRadius * std::sin(deltaTheta);
+		}
+		else
+		{
+			deltaX = 0;
+			deltaY = leftDistance;
+		}
+
+		double nx   = node->x + deltaX * std::sin(node->yaw) +
+			deltaY * std::cos(node->yaw);
+		double ny   = node->y + deltaX * std::cos(node->yaw) +
+			deltaY * std::sin(node->yaw);
+		double nYaw = node->yaw + deltaTheta;
+
+		DifferentialDriveAStarNode* neighbor =
+									  new DifferentialDriveAStarNode(nx, ny,
+										  nYaw, neighborLeftSpeed[index],
+										  neighborRightSpeed[index]);
+		nodes.push_back(neighbor);
+		return neighbor;
 	}
 
 	inline size_t neighborCount(const DifferentialDriveAStarNode* node) const
 	{
-		return 8;
-	}
-
-	inline DifferentialDriveAStarNode*& getNode(int x, int y, int t)
-	{
-		DifferentialDriveAStarNode*& n = nodes[{x, y, t}];
-		if (!n)
-			n = new DifferentialDriveAStarNode(x, y, t);
-		return n;
+		return 7;
 	}
 
 	inline bool isObstacle(DifferentialDriveAStarNode* node) const
 	{
-		return obstacles.count(node) >= 1;
+		//TODO: Implement for diffy drive
+		return false;
 	}
 
 	void reset();
