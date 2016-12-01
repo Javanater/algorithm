@@ -129,7 +129,7 @@ public:
 
 	inline size_t neighborCount(const DifferentialDriveAStarNode* node) const
 	{
-		return 7;
+		return 8;
 	}
 
 	inline DifferentialDriveAStarNode* getNode(double x, double y, double yaw)
