@@ -17,50 +17,79 @@ namespace flabs
 {
 class DifferentialDriveAStar;
 
-struct DifferentialDriveAStarNode :
-	public AStar<DifferentialDriveAStar, DifferentialDriveAStarNode>::SuperNode
+struct DifferentialDriveAStarObstacle
 {
 	double x;
 	double y;
-	double yaw;
-	double leftSpeed;
-	double rightSpeed;
+	double size;
 
-	DifferentialDriveAStarNode(double x, double y, double yaw, double leftSpeed,
-		double rightSpeed);
+	DifferentialDriveAStarObstacle(double x, double y, double size);
+
+	inline bool operator<(const DifferentialDriveAStarObstacle& node) const
+	{
+		return x < node.x || (x == node.x && y < node.y);
+	}
+};
+
+struct DifferentialDriveAStarNode :
+	public AStar<DifferentialDriveAStar, DifferentialDriveAStarNode>::SuperNode
+{
+	int x;
+	int y;
+	int yaw;
+	const DifferentialDriveAStar& differentialDriveAStar;
+
+	DifferentialDriveAStarNode(
+		const DifferentialDriveAStar& differentialDriveAStar, int x, int y,
+		int yaw);
+
+	inline bool operator<(const DifferentialDriveAStarNode& node) const
+	{
+		return x < node.x ||
+			(x == node.x && (y < node.y || (y == node.y && yaw < node.yaw)));
+	}
 
 	inline bool operator==(const DifferentialDriveAStarNode& node) const
 	{
-		return std::abs(x - node.x) <= .01 && std::abs(y - node.y) <= .01 &&
-			std::abs(angleDifference(yaw, node.yaw)) <= .1;
-	}
-
-	inline bool isNeighbor(const DifferentialDriveAStarNode* node) const
-	{
-		//TODO: Implement for diffy drive
-		return true;
+		return x == node.x && y == node.y && yaw == node.yaw;
 	}
 
 	friend std::ostream&
 	operator<<(std::ostream& out, const DifferentialDriveAStarNode* node);
 };
 
-class DifferentialDriveAStar
+class DifferentialDriveAStar :
+	public AStar<DifferentialDriveAStar, DifferentialDriveAStarNode>
 {
 private:
 	static const double neighborLeftSpeed[];
 	static const double neighborRightSpeed[];
-	const double        timeStep;
 	const double        topSpeed;
 	const double        distanceBetweenWheels;
+	const double gridUnit;
+	const double angleResolution;
 	double              topTurnRate;
 
-public:
-	std::set<DifferentialDriveAStarNode*>  obstacles;
-	std::list<DifferentialDriveAStarNode*> nodes;
+	struct State
+	{
+		int dx;
+		int dy;
+		int yaw;
 
-	DifferentialDriveAStar(const double timeStep, const double topSpeed,
-		const double distanceBetweenWheels);
+		bool operator==(const State& state) const;
+
+		bool operator!=(const State& state) const;
+	};
+
+	std::vector<std::vector<State>>  nextStates;
+	std::vector<std::vector<double>> nextCosts;
+
+public:
+	std::set<DifferentialDriveAStarNode> nodes;
+
+	DifferentialDriveAStar(const double topSpeed,
+		const double distanceBetweenWheels, const double gridUnit,
+		const double angleResolution);
 
 	~DifferentialDriveAStar();
 
@@ -68,49 +97,34 @@ public:
 	cost(DifferentialDriveAStarNode* from, DifferentialDriveAStarNode* to,
 		size_t neighborIndex) const
 	{
-		return timeStep;
+		return nextCosts[from->yaw][neighborIndex];
 	}
 
 	inline double
 	cost(DifferentialDriveAStarNode* from, DifferentialDriveAStarNode* to) const
 	{
-		return hypot(to->x - from->x, to->y - from->y) / topSpeed +
-			std::abs(angleDifference(to->yaw, from->yaw)) / topTurnRate;
+//		double a = std::atan2(fromGrid(to->y) - fromGrid(from->y),
+//			fromGrid(to->x) - fromGrid(from->x));
+//		return hypot(fromGrid(to->x) - fromGrid(from->x),
+//			fromGrid(to->y) - fromGrid(from->y)) / topSpeed +
+//			std::abs(angleDifference(a, fromGridAngle(from->yaw))) /
+//				topTurnRate +
+//			std::abs(angleDifference(fromGridAngle(to->yaw), a)) / topTurnRate;
+//		return hypot(fromGrid(to->x) - fromGrid(from->x),
+//			fromGrid(to->y) - fromGrid(from->y)) / topSpeed + std::abs(
+//			angleDifference(fromGridAngle(to->yaw), fromGridAngle(from->yaw))) /
+//			topTurnRate;
+		return std::max(hypot(fromGrid(to->x) - fromGrid(from->x),
+			fromGrid(to->y) - fromGrid(from->y)) / topSpeed, std::abs(
+			angleDifference(fromGridAngle(to->yaw), fromGridAngle(from->yaw))) /
+			topTurnRate);
 	}
 
 	inline DifferentialDriveAStarNode*
 	getNeighbor(const DifferentialDriveAStarNode* node, size_t index)
 	{
-		double leftDistance  = neighborLeftSpeed[index] * topSpeed * timeStep;
-		double rightDistance = neighborRightSpeed[index] * topSpeed * timeStep;
-		double deltaTheta    =
-				   (rightDistance - leftDistance) / distanceBetweenWheels;
-		double deltaX, deltaY;
-		if (deltaTheta != 0)
-		{
-			double turnRadius =
-					   leftDistance / deltaTheta + distanceBetweenWheels / 2;
-			deltaX = turnRadius * (std::cos(deltaTheta) - 1);
-			deltaY = turnRadius * std::sin(deltaTheta);
-		}
-		else
-		{
-			deltaX = 0;
-			deltaY = leftDistance;
-		}
-
-		double nx   = node->x + deltaX * std::sin(node->yaw) +
-			deltaY * std::cos(node->yaw);
-		double ny   = node->y + deltaX * std::cos(node->yaw) +
-			deltaY * std::sin(node->yaw);
-		double nYaw = node->yaw + deltaTheta;
-
-		DifferentialDriveAStarNode* neighbor =
-									  new DifferentialDriveAStarNode(nx, ny,
-										  nYaw, neighborLeftSpeed[index],
-										  neighborRightSpeed[index]);
-		nodes.push_back(neighbor);
-		return neighbor;
+		State state = nextStates[node->yaw][index];
+		return getNode(node->x + state.dx, node->y + state.dy, state.yaw);
 	}
 
 	inline size_t neighborCount(const DifferentialDriveAStarNode* node) const
@@ -118,13 +132,35 @@ public:
 		return 7;
 	}
 
-	inline bool isObstacle(DifferentialDriveAStarNode* node) const
+	inline DifferentialDriveAStarNode* getNode(double x, double y, double yaw)
 	{
-		//TODO: Implement for diffy drive
-		return false;
+		std::set<DifferentialDriveAStarNode>::iterator it;
+		std::tie(it, std::ignore) =
+			nodes.emplace(*this, toGrid(x), toGrid(y), toGridAngle(yaw));
+		return &*it;
+	}
+
+	inline DifferentialDriveAStarNode* getNode(int x, int y, int yaw)
+	{
+		std::set<DifferentialDriveAStarNode>::iterator it;
+		std::tie(it, std::ignore) = nodes.emplace(*this, x, y, yaw);
+		return &*it;
 	}
 
 	void reset();
+
+	int toGrid(double a) const;
+
+	double fromGrid(int a) const;
+
+	int toGridAngle(double a) const;
+
+	double fromGridAngle(int a) const;
+
+private:
+	void calculateNextStates();
+
+	State calculateNextState(double yaw, int index, double timeStep);
 };
 }
 

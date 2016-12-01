@@ -9,6 +9,7 @@
 #include <list>
 #include <limits>
 #include <cstddef>
+#include <cmath>
 
 namespace flabs
 {
@@ -67,7 +68,7 @@ public:
 			if (!current)
 				break;
 
-			if (current == goal)
+			if (*current == *goal)
 				return reconstructPath(&*current);
 
 			openSet.erase(current);
