@@ -10,19 +10,13 @@
 #include <limits>
 #include <cstddef>
 #include <cmath>
+#include <functional>
 
 namespace flabs
 {
 template<class Base, class Node>
 class AStar
 {
-protected:
-	Base* base;
-
-	AStar(Base* base) : base(base)
-	{
-	}
-
 public:
 	struct OrderByCost
 	{
@@ -33,6 +27,21 @@ public:
 		}
 	};
 
+protected:
+	Base                                              * base;
+	std::function<void(std::set<Node*, OrderByCost>)> openSetCallback;
+
+	AStar(Base* base) : base(base)
+	{
+	}
+
+	AStar(Base* base,
+		std::function<void(std::set<Node*, OrderByCost>)> openSetCallback) :
+		base(base), openSetCallback(openSetCallback)
+	{
+	}
+
+public:
 	struct SuperNode
 	{
 		double fScore;
@@ -63,13 +72,21 @@ public:
 
 		for (; !openSet.empty() && maxIterations; --maxIterations)
 		{
+			if (openSetCallback)
+				openSetCallback(openSet);
+
 			Node* current = *openSet.begin();
 
 			if (!current)
 				break;
 
 			if (*current == *goal)
+			{
+				openSet.clear();
+				if (openSetCallback)
+					openSetCallback(openSet);
 				return reconstructPath(&*current);
+			}
 
 			openSet.erase(current);
 			current->closedSet = true;
@@ -91,12 +108,14 @@ public:
 				openSet.erase(neighbor);
 				neighbor->cameFrom = current;
 				neighbor->gScore   = tentativeGScore;
-				neighbor->fScore   =
-					tentativeGScore + base->cost(neighbor, goal);
+				neighbor->fScore = tentativeGScore + base->cost(neighbor, goal);
 				openSet.insert(neighbor);
 			}
 		}
 
+		openSet.clear();
+		if (openSetCallback)
+			openSetCallback(openSet);
 		std::list<Node*> empty;
 		return empty;
 	}

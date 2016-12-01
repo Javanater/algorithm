@@ -1,4 +1,4 @@
 cmake_minimum_required(VERSION 3.5)
 project(Algorithms)
-set(SOURCE_FILES AStar.hpp GridAStar.cpp GridAStar.hpp DStarLite.hpp LPAStar.hpp DifferentialDriveAStar.cpp DifferentialDriveAStar.hpp)
+set(SOURCE_FILES AStar.hpp GridAStar.cpp GridAStar.hpp DStarLite.hpp LPAStar.hpp DifferentialDriveAStar.cpp DifferentialDriveAStar.hpp DifferentialDriveAStarCont.cpp DifferentialDriveAStarCont.hpp)
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
