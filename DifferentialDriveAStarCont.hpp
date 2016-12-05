@@ -53,7 +53,7 @@ struct DifferentialDriveAStarContNode :
 	inline bool operator==(const DifferentialDriveAStarContNode& node) const
 	{
 		return within(x, node.x, .1) && within(y, node.y, .1) &&
-			std::abs(angleDifference(yaw, node.yaw)) <= .1;
+			std::abs(angleDifference(yaw, node.yaw)) <= .03;
 	}
 
 	friend std::ostream&
@@ -111,8 +111,34 @@ public:
 		return hypot(to->x - from->x, to->y - from->y) / topSpeed +
 			std::abs(angleDifference(a, from->yaw)) / topTurnRate +
 			std::abs(angleDifference(to->yaw, a)) / topTurnRate;
+
+//		double a                       =
+//				   std::atan2(to->y - from->y, to->x - from->x);
+//		double distanceToTarget        =
+//				   hypot(to->x - from->x, to->y - from->y);
+//		double timeToTranslateToTarget = distanceToTarget / topSpeed;
+//		return timeToTranslateToTarget * timeToTranslateToTarget +
+//			std::abs(angleDifference(a, from->yaw)) / topTurnRate +
+//			std::abs(angleDifference(to->yaw, a)) / topTurnRate;
+
+//		double a                       =
+//				   std::atan2(to->y - from->y, to->x - from->x);
+//		double distanceToTarget = hypot(to->x - from->x, to->y - from->y);
+//		double timeToTranslateToTarget = distanceToTarget / topSpeed;
+//		double timeToTurnTowardsTarget =
+//				   std::abs(angleDifference(a, from->yaw)) / topTurnRate;
+//		double timeToAlignWithTarget   =
+//				   std::abs(angleDifference(to->yaw, a)) / topTurnRate;
+//		double cost = timeToTranslateToTarget;
+//		if (distanceToTarget < 1)
+//			cost += timeToTurnTowardsTarget * distanceToTarget + timeToAlignWithTarget * (1-distanceToTarget);
+//		else
+//			cost += timeToTurnTowardsTarget;
+//		return cost;
+
 //		return hypot(to->x - from->x, to->y - from->y) / topSpeed +
 //			std::abs(angleDifference(to->yaw, from->yaw)) / topTurnRate;
+
 //		return std::max(hypot(to->x - from->x, to->y - from->y) / topSpeed,
 //			std::abs(angleDifference(to->yaw, from->yaw)) / topTurnRate);
 	}
