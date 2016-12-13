@@ -9,6 +9,7 @@
 #include <cmath>
 #include <map>
 #include <ostream>
+#include <vector>
 #include <tuple>
 #include <boost/math/constants/constants.hpp>
 #include <Math/Math.hpp>
