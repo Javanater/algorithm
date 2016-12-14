@@ -156,8 +156,8 @@ public:
 		{
 			double turnRadius =
 					   leftDistance / deltaTheta + distanceBetweenWheels / 2;
-			deltaX = turnRadius * (cos(deltaTheta) - 1);
-			deltaY = turnRadius * sin(deltaTheta);
+			deltaX            = turnRadius * (std::cos(deltaTheta) - 1);
+			deltaY            = turnRadius * std::sin(deltaTheta);
 		}
 		else
 		{
@@ -165,11 +165,11 @@ public:
 			deltaY = leftDistance;
 		}
 
-		double nx   =
-				   node->x + deltaX * sin(node->yaw) + deltaY * cos(node->yaw);
-		double ny   =
-				   node->y + deltaX * cos(node->yaw) + deltaY * sin(node->yaw);
-		double nYaw = node->yaw + deltaTheta;
+		double nx            = node->x + deltaX * std::sin(node->yaw) +
+			deltaY * std::cos(node->yaw);
+		double ny            = node->y + deltaX * std::cos(node->yaw) +
+			deltaY * std::sin(node->yaw);
+		double nYaw          = node->yaw + deltaTheta;
 
 		return getNode(nx, ny, nYaw);
 	}
