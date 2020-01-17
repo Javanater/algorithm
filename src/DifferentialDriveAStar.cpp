@@ -2,7 +2,7 @@
 // Created by Madison on 11/26/2016.
 //
 
-#include "DifferentialDriveAStar.hpp"
+#include <algorithm/DifferentialDriveAStar.hpp>
 
 using namespace std;
 using boost::math::constants::pi;

@@ -12,7 +12,7 @@
 #include <vector>
 #include <tuple>
 #include <boost/math/constants/constants.hpp>
-#include <Math/Math.hpp>
+#include <math/Math.hpp>
 
 namespace flabs
 {
@@ -121,7 +121,7 @@ public:
 			topTurnRate);
 	}
 
-	inline DifferentialDriveAStarNode*
+	inline DifferentialDriveAStarNode const*
 	getNeighbor(const DifferentialDriveAStarNode* node, size_t index)
 	{
 		State state = nextStates[node->yaw][index];
@@ -133,7 +133,7 @@ public:
 		return 8;
 	}
 
-	inline DifferentialDriveAStarNode* getNode(double x, double y, double yaw)
+	inline DifferentialDriveAStarNode const* getNode(double x, double y, double yaw)
 	{
 		std::set<DifferentialDriveAStarNode>::iterator it;
 		std::tie(it, std::ignore) =
@@ -141,7 +141,7 @@ public:
 		return &*it;
 	}
 
-	inline DifferentialDriveAStarNode* getNode(int x, int y, int yaw)
+	inline DifferentialDriveAStarNode const* getNode(int x, int y, int yaw)
 	{
 		std::set<DifferentialDriveAStarNode>::iterator it;
 		std::tie(it, std::ignore) = nodes.emplace(*this, x, y, yaw);

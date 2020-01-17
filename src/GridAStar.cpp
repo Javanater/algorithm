@@ -2,7 +2,7 @@
 // Created by Madison on 11/21/2016.
 //
 
-#include "GridAStar.hpp"
+#include <algorithm/GridAStar.hpp>
 #include <list>
 
 using namespace std;

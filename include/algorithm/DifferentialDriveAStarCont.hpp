@@ -5,14 +5,14 @@
 #ifndef PROJECTS_DIFFERENTIALDRIVEASTARCONT_HPP
 #define PROJECTS_DIFFERENTIALDRIVEASTARCONT_HPP
 
-#include "AStar.hpp"
+#include <algorithm/AStar.hpp>
 #include <cmath>
 #include <map>
 #include <ostream>
 #include <vector>
 #include <tuple>
 #include <boost/math/constants/constants.hpp>
-#include <Math/Math.hpp>
+#include <math/Math.hpp>
 
 namespace flabs
 {
@@ -47,7 +47,7 @@ struct DifferentialDriveAStarContNode :
 
 	inline bool operator<(const DifferentialDriveAStarContNode& node) const
 	{
-		return !(*this == node) && x < node.x ||
+		return (!(*this == node) && x < node.x) ||
 			(x == node.x && (y < node.y || (y == node.y && yaw < node.yaw)));
 	}
 
@@ -144,7 +144,7 @@ public:
 //			std::abs(angleDifference(to->yaw, from->yaw)) / topTurnRate);
 	}
 
-	inline DifferentialDriveAStarContNode*
+	inline DifferentialDriveAStarContNode const*
 	getNeighbor(const DifferentialDriveAStarContNode* node, size_t index)
 	{
 		double leftDistance  = neighborLeftSpeed[index] * topSpeed * timeStep;
@@ -180,7 +180,7 @@ public:
 		return 8;
 	}
 
-	inline DifferentialDriveAStarContNode*
+	inline DifferentialDriveAStarContNode const*
 	getNode(double x, double y, double yaw)
 	{
 		std::set<DifferentialDriveAStarContNode>::iterator it;
